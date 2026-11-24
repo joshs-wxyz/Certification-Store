@@ -23,6 +23,11 @@ app.disable('x-powered-by');
 app.use(express.json({ limit: '32kb' }));
 
 app.get('/api/health', (_req, res) => {
+  // Provider/credential diagnostics (booleans only, never values) are dev-only.
+  if (!config.isDev) {
+    res.json({ status: 'ok' });
+    return;
+  }
   res.json({
     status: 'ok',
     providers: {

@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Edit(**/.env)",
+      "Edit(**/.env.*)",
+      "Write(**/.env)",
+      "Write(**/.env.*)",
+      "Bash(cat *.env*)",
+      "Bash(type *.env*)",
+      "Bash(head *.env*)",
+      "Bash(tail *.env*)",
+      "Bash(grep * *.env*)",
+      "Bash(rg * *.env*)",
+      "Bash(cp *.env* *)",
+      "Bash(printenv*)",
+      "PowerShell(Get-Content *.env*)",
+      "PowerShell(gc *.env*)",
+      "PowerShell(type *.env*)",
+      "PowerShell(Select-String *.env*)",
+      "PowerShell(Get-ChildItem Env:*)",
+      "PowerShell(dir Env:*)"
+    ]
+  }
+}

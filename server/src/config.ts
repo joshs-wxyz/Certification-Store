@@ -8,6 +8,8 @@ try {
 const emptyToUndefined = (value: string | undefined) => (value && value.trim() !== '' ? value.trim() : undefined);
 
 export const config = {
+  /** Dev unless NODE_ENV=production. Gates diagnostics that must not be public. */
+  isDev: process.env['NODE_ENV'] !== 'production',
   port: Number(process.env['PORT'] ?? 3000),
   aiTimeoutMs: Number(process.env['AI_TIMEOUT_MS'] ?? 120_000),
   copilot: {
