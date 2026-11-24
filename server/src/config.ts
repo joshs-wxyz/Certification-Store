@@ -14,8 +14,10 @@ export const config = {
     githubToken: emptyToUndefined(process.env['GITHUB_TOKEN']),
     model: emptyToUndefined(process.env['COPILOT_MODEL']),
   },
-  claude: {
-    apiKey: emptyToUndefined(process.env['ANTHROPIC_API_KEY']),
-    model: emptyToUndefined(process.env['CLAUDE_MODEL']) ?? 'claude-opus-5-5',
+  gemini: {
+    /** Optional: when unset, @google/genai reads GEMINI_API_KEY / GOOGLE_API_KEY or Vertex AI env vars itself. */
+    apiKey: emptyToUndefined(process.env['GEMINI_API_KEY']),
+    model: emptyToUndefined(process.env['GEMINI_MODEL']) ?? 'gemini-3.5-flash-lite',
+    usesVertexAi: process.env['GOOGLE_GENAI_USE_VERTEXAI']?.toLowerCase() === 'true',
   },
 } as const;

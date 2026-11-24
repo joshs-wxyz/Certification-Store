@@ -10,7 +10,7 @@ An internal web app that shows employees the certification exams currently avail
 
 - **Catalog (landing page `/`)**: a panel for each exam, showing title and short description. Panels can be **added and deleted**.
 - **Details page (`/certifications/:id`)**: title, full description, and who the certification is intended for.
-- **Study plan**: a **Gen AI** study plan generated on the details page. This is a **hard requirement**. Generation uses the **GitHub Copilot SDK first**, with the **Claude API SDK as the fallback**.
+- **Study plan**: a **Gen AI** study plan generated on the details page. This is a **hard requirement**. Generation uses the **GitHub Copilot SDK first**, with the **Google Gemini SDK (`@google/genai`) as the fallback**.
 
 Status: **rough draft / scaffold**. There is no auth, and the catalog is saved per browser in `localStorage`.
 
@@ -50,7 +50,7 @@ Certification-Store/
         └── providers/
             ├── study-plan-provider.ts  ← StudyPlanProvider interface
             ├── copilot.provider.ts     ← primary (@microsoft/copilot-sdk)
-            └── claude.provider.ts      ← fallback (@anthropic-ai/sdk)
+            └── gemini.provider.ts      ← fallback (@google/genai)
 ```
 
 ## 3. Commands
@@ -73,7 +73,7 @@ Requirements: **Node ≥ 22.12** (developed on 22.23), npm 10. Windows is the pr
 
 ```
 Angular (browser) ── POST /api/study-plan ──▶ Express BFF ──▶ 1. CopilotStudyPlanProvider
-       ▲                                           │           2. ClaudeStudyPlanProvider (fallback)
+       ▲                                           │           2. GeminiStudyPlanProvider (fallback)
        └────────── StudyPlanResponse ◀─────────────┘
 ```
 
@@ -92,12 +92,15 @@ Angular (browser) ── POST /api/study-plan ──▶ Express BFF ──▶ 1.
 - Auth: `GITHUB_TOKEN` from `.env`. If it's empty, the SDK uses the locally logged-in GitHub/Copilot user, which is fine for dev and not for production.
 - Don't guess SDK APIs. Check the type definitions in `server/node_modules/@microsoft/copilot-sdk/dist/*.d.ts`.
 
-### Claude API (fallback)
-- Package: `@anthropic-ai/sdk`. Default model **`claude-opus-5-5`**, set by `CLAUDE_MODEL`. Don't change the model unless asked.
-- Uses **structured outputs**: `client.beta.messages.parse({ ..., output_config: { effort: 'medium', format: betaZodOutputFormat(StudyPlanSchema) } })`.
-- **Server-side refusal fallback** is on: `betas: ['server-side-fallback-2026-07-01']` with `fallbacks: 'default'`.
-- Current-API rules: **don't send** `temperature`/`top_p`/`top_k`, `thinking: {type: 'disabled'}`, `budget_tokens`, assistant prefill, or forced `tool_choice`. All of them return a 400 on this model.
-- Always check `stop_reason` (`refusal`, `max_tokens`) and `parsed_output` before returning. Use the SDK's typed error classes (`Anthropic.AuthenticationError`, `Anthropic.RateLimitError`, and so on), never string matching.
+### Google Gemini (fallback)
+- Package: **`@google/genai`** (Google Gen AI SDK, v3). `@google/generative-ai` is the **legacy** SDK, so don't add it.
+- Default model **`gemini-3.5-flash-lite`** (stable, recommended by Google for price and performance), set by `GEMINI_MODEL`. Don't change the default unless asked. The `gemini-2.x` models are deprecated or shut down.
+- Call: `ai.models.generateContent({ model, contents, config: { systemInstruction, responseMimeType: 'application/json', responseJsonSchema, abortSignal } })`. The JSON Schema comes from `z.toJSONSchema(StudyPlanSchema)` with `$schema` removed.
+- Gemini enforces only a **subset of JSON Schema**, so the response is **always** re-validated with `StudyPlanSchema.safeParse`. Keep the schema simple: no `min`/`max` length constraints and no deep nesting.
+- Check `promptFeedback.blockReason` and `candidates[0].finishReason` (`STOP` is the only success; `MAX_TOKENS`, `SAFETY` and others mean failure) before reading `response.text`.
+- Auth: `GEMINI_API_KEY` (Gemini Developer API / AI Studio). If it's unset, the SDK reads `GOOGLE_API_KEY`, or uses **Vertex AI** when `GOOGLE_GENAI_USE_VERTEXAI=true` with `GOOGLE_CLOUD_PROJECT`/`GOOGLE_CLOUD_LOCATION` and Application Default Credentials. No code change is needed to switch.
+- Errors: map `ApiError` from `@google/genai` by `status` in `describeError()`, never by matching message text. The timeout uses `AbortSignal.timeout(AI_TIMEOUT_MS)`.
+- Don't guess SDK APIs. Check `server/node_modules/@google/genai/dist/node/node.d.ts`.
 
 ### Prompting
 - Edit prompts only in `server/src/prompt.ts`.
@@ -136,7 +139,7 @@ Angular (browser) ── POST /api/study-plan ──▶ Express BFF ──▶ 1.
 
 - Client: Vitest via `ng test` (jsdom). Specs sit next to the source as `*.spec.ts`. Cover any new service logic, for example `certification.store.spec.ts`.
 - Server: no unit tests yet. At least keep `npm run typecheck` clean. If you add tests, use Vitest and **mock the providers**. Tests must never call real AI APIs.
-- Don't make real Copilot or Claude calls in automated tests or CI. They cost money, use quota, and need credentials.
+- Don't make real Copilot or Gemini calls in automated tests or CI. They cost money, use quota, and need credentials.
 
 ## 9. Gotchas
 

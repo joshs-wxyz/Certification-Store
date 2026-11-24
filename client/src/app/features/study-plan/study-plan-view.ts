@@ -24,7 +24,7 @@ export class StudyPlanView {
 
   protected readonly plan = computed(() => this.response().plan);
   protected readonly providerLabel = computed(() =>
-    this.response().provider === 'github-copilot' ? 'GitHub Copilot' : 'Claude',
+    this.response().provider === 'github-copilot' ? 'GitHub Copilot' : 'Google Gemini',
   );
   protected readonly totalHours = computed(() =>
     this.plan().weeks.reduce((sum, w) => sum + (Number(w.estimatedHours) || 0), 0),

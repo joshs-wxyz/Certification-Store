@@ -25,15 +25,15 @@ Certification-Store/
 
 ```
 Browser (Angular) ──POST /api/study-plan──▶ Express BFF ──▶ 1) GitHub Copilot SDK  (@microsoft/copilot-sdk)
-        ▲                                         │        2) Claude API SDK     (@anthropic-ai/sdk) ← fallback
+        ▲                                         │        2) Google Gemini SDK  (@google/genai) ← fallback
         └──────────── StudyPlanResponse ◀─────────┘
 ```
 
 - **API keys stay on the server.** They are read from `server/.env` and never sent to the browser. In development the Angular dev server proxies `/api` to `http://localhost:3000` (`client/proxy.conf.json`).
-- **Provider chain:** `StudyPlanService` tries Copilot first. If Copilot throws for any reason (auth, timeout, invalid output), the service logs the reason and retries with Claude. The response says which provider produced the plan, and the UI shows a notice when the fallback was used. If both fail, the server returns `502` with the reason from each provider.
+- **Provider chain:** `StudyPlanService` tries Copilot first. If Copilot throws for any reason (auth, timeout, invalid output), the service logs the reason and retries with Gemini. The response says which provider produced the plan, and the UI shows a notice when the fallback was used. If both fail, the server returns `502` with the reason from each provider.
 - **The same schema for both providers:** one Zod schema (`server/src/schema.ts`) validates the output of both.
   - Copilot: `session.sendAndWait({ prompt }, StudyPlanSchema, timeout)` returns a parsed, typed object. The session runs with **no tools** enabled (`tools.availableTools: []`), so it is pure text generation with no shell, file, or web access.
-  - Claude: `client.beta.messages.parse()` with `betaZodOutputFormat(StudyPlanSchema)` (structured outputs). Model `claude-opus-5-5` at effort `medium`. **Server-side refusal fallback** (`fallbacks: "default"`, beta `server-side-fallback-2026-07-01`) is turned on: if a safety classifier declines, the API re-runs the request on a suitable fallback model. To turn it off, remove those two lines from `claude.provider.ts`.
+  - Gemini: `ai.models.generateContent()` with `responseMimeType: 'application/json'` and a `responseJsonSchema` generated from the same Zod schema (`z.toJSONSchema`). Gemini enforces only a subset of JSON Schema, so the result is always re-validated with Zod. The default model is `gemini-3.5-flash-lite`. Responses that were blocked or cut short (`blockReason`, or a `finishReason` other than `STOP`) count as failures.
 - **Prompt-injection hygiene:** certification text and the learner's notes are wrapped in XML tags. The system prompt tells the model to treat them as data. The request body is validated with Zod and size-limited (32 kB).
 
 ## Getting started
@@ -53,8 +53,9 @@ npm run dev                             # API on :3000, app on http://localhost:
 |---|---|
 | `GITHUB_TOKEN` | GitHub token for an account or org with a Copilot license. **If empty, the SDK uses the locally logged-in GitHub/Copilot CLI user**, which is handy for local development. |
 | `COPILOT_MODEL` | Optional Copilot model id. If empty, the Copilot runtime's default model is used. |
-| `ANTHROPIC_API_KEY` | Claude API key for the fallback. |
-| `CLAUDE_MODEL` | Defaults to `claude-opus-5-5`. |
+| `GEMINI_API_KEY` | Gemini Developer API key (from Google AI Studio) for the fallback. |
+| `GEMINI_MODEL` | Defaults to `gemini-3.5-flash-lite`. |
+| `GOOGLE_GENAI_USE_VERTEXAI`, `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION` | Optional: use Vertex AI (Application Default Credentials) instead of an API key. Leave `GEMINI_API_KEY` empty. |
 | `AI_TIMEOUT_MS` | Timeout per provider (default `120000`). |
 
 `GET /api/health` reports which credentials are configured. It never returns their values.

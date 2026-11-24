@@ -21,7 +21,7 @@ export type StudyPlanRequest = z.infer<typeof StudyPlanRequestSchema>;
 
 /**
  * Shape both providers must return. Kept free of numeric/length constraints so it
- * works with Claude structured outputs and the Copilot SDK's response schema alike.
+ * works with Gemini structured output (JSON Schema) and the Copilot SDK's response schema alike.
  */
 export const StudyPlanSchema = z.object({
   summary: z.string().describe('Two or three sentences describing the overall approach.'),
@@ -50,7 +50,7 @@ export const StudyPlanSchema = z.object({
 });
 export type StudyPlan = z.infer<typeof StudyPlanSchema>;
 
-export type ProviderName = 'github-copilot' | 'claude';
+export type ProviderName = 'github-copilot' | 'gemini';
 
 export interface StudyPlanResponse {
   plan: StudyPlan;

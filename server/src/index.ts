@@ -1,7 +1,7 @@
 import express, { type NextFunction, type Request, type Response } from 'express';
 import { config } from './config.js';
-import { ClaudeStudyPlanProvider } from './providers/claude.provider.js';
 import { CopilotStudyPlanProvider } from './providers/copilot.provider.js';
+import { GeminiStudyPlanProvider } from './providers/gemini.provider.js';
 import { StudyPlanRequestSchema } from './schema.js';
 import { AllProvidersFailedError, StudyPlanService } from './study-plan.service.js';
 
@@ -11,9 +11,9 @@ const studyPlans = new StudyPlanService([
     model: config.copilot.model,
     timeoutMs: config.aiTimeoutMs,
   }),
-  new ClaudeStudyPlanProvider({
-    apiKey: config.claude.apiKey,
-    model: config.claude.model,
+  new GeminiStudyPlanProvider({
+    apiKey: config.gemini.apiKey,
+    model: config.gemini.model,
     timeoutMs: config.aiTimeoutMs,
   }),
 ]);
@@ -27,7 +27,12 @@ app.get('/api/health', (_req, res) => {
     status: 'ok',
     providers: {
       'github-copilot': { order: 1, tokenConfigured: Boolean(config.copilot.githubToken), model: config.copilot.model ?? 'runtime default' },
-      claude: { order: 2, apiKeyConfigured: Boolean(config.claude.apiKey), model: config.claude.model },
+      gemini: {
+        order: 2,
+        apiKeyConfigured: Boolean(config.gemini.apiKey || process.env['GOOGLE_API_KEY']),
+        vertexAi: config.gemini.usesVertexAi,
+        model: config.gemini.model,
+      },
     },
   });
 });

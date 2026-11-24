@@ -1,7 +1,7 @@
 {
   "name": "certification-store-server",
   "version": "0.1.0",
-  "description": "Backend-for-frontend for Certification-Store: Gen AI study plan generation (GitHub Copilot SDK primary, Claude API fallback).",
+  "description": "Backend-for-frontend for Certification-Store: Gen AI study plan generation (GitHub Copilot SDK primary, Google Gemini fallback).",
   "private": true,
   "type": "module",
   "main": "dist/index.js",
@@ -15,7 +15,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^1.13.0",
+    "@google/genai": "^3.6.1",
     "@microsoft/copilot-sdk": "^2.0.1",
     "express": "^5.3.0",
     "zod": "^4.6.7"

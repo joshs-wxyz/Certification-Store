@@ -36,7 +36,7 @@ export interface StudyPlan {
   examTips: string[];
 }
 
-export type ProviderName = 'github-copilot' | 'claude';
+export type ProviderName = 'github-copilot' | 'gemini';
 
 export interface StudyPlanResponse {
   plan: StudyPlan;

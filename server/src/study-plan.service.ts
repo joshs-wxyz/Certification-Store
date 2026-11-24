@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { ApiError as GeminiApiError } from '@google/genai';
 import type { StudyPlanProvider } from './providers/study-plan-provider.js';
 import type { StudyPlanRequest, StudyPlanResponse } from './schema.js';
 
@@ -10,15 +10,24 @@ export class AllProvidersFailedError extends Error {
 
 /** Short, non-sensitive description of a provider error for logs and the API response. */
 export function describeError(err: unknown): string {
-  if (err instanceof Anthropic.AuthenticationError) return 'Authentication failed (check ANTHROPIC_API_KEY).';
-  if (err instanceof Anthropic.RateLimitError) return 'Rate limited by the Claude API.';
-  if (err instanceof Anthropic.APIError) return `Claude API error ${err.status ?? ''}: ${err.message}`.trim();
-  if (err instanceof Error) return err.message;
-  return String(err);
+  if (err instanceof GeminiApiError) {
+    if (err.status === 400 && /api key/i.test(err.message)) return 'Gemini rejected the API key (check GEMINI_API_KEY).';
+    if (err.status === 401 || err.status === 403) return 'Gemini authentication failed (check GEMINI_API_KEY or Vertex AI credentials).';
+    if (err.status === 404) return 'Gemini model not found (check GEMINI_MODEL).';
+    if (err.status === 429) return 'Rate limited or out of quota on the Gemini API.';
+    return `Gemini API error ${err.status}: ${truncate(err.message)}`;
+  }
+  if (err instanceof Error && err.name === 'TimeoutError') return 'Timed out (AI_TIMEOUT_MS).';
+  if (err instanceof Error) return truncate(err.message);
+  return truncate(String(err));
+}
+
+function truncate(message: string, max = 300): string {
+  return message.length > max ? `${message.slice(0, max)}…` : message;
 }
 
 /**
- * Tries providers in order (Copilot first, then Claude) and returns the first success.
+ * Tries providers in order (Copilot first, then Gemini) and returns the first success.
  */
 export class StudyPlanService {
   constructor(private readonly providers: readonly StudyPlanProvider[]) {}
