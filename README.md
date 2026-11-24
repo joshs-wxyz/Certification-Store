@@ -9,6 +9,8 @@ Certification-Store/
 └── package.json   root scripts (runs both together with `concurrently`)
 ```
 
+> **Working with AI coding tools?** [`AGENTS.md`](./AGENTS.md) is the single source of truth for agent context. `CLAUDE.md` (Claude Code) and `.github/copilot-instructions.md` (GitHub Copilot) both point to it. Update `AGENTS.md` only.
+
 ## Features
 
 | Area | What it does |
