@@ -22,7 +22,7 @@ Certification-Store/
 ├── CLAUDE.md                  ← pointer to AGENTS.md (Claude Code)
 ├── .github/copilot-instructions.md  ← pointer to AGENTS.md (GitHub Copilot)
 ├── .github/workflows/pr-check.yml   ← CI: server typecheck and tests on PRs into develop (advisory, see §10)
-├── .githooks/pre-push         ← runs the same server checks before every push (core.hooksPath)
+├── .githooks/pre-push         ← server checks before every push: blocks pushes to develop, warns otherwise (core.hooksPath)
 ├── docs/plans/                ← multi-session plans (testing-and-ci-guard.md)
 ├── README.md                  ← human-facing overview and setup
 ├── package.json               ← root scripts only (concurrently)
@@ -167,7 +167,8 @@ Angular (browser) ── POST /api/study-plan ──▶ Express BFF ──▶ 1.
 - **Never commit** `.env`, keys or tokens, `node_modules/`, `dist/` or `.angular/`.
 - Agents: don't commit, push or open PRs unless a human asks. Don't add dependencies without saying why.
 - **PR check (advisory).** `.github/workflows/pr-check.yml` runs the server typecheck and tests on every PR into `develop` and every push to it. The repo is private on GitHub Free, so GitHub can't block a red merge; the rule is a team agreement: **don't merge a PR while "PR check" is red or still running.** Agents must never merge PRs (denied for Claude Code in `.claude/settings.json`), never suggest merging a red PR, and never bypass hooks with `--no-verify`.
-- The `pre-push` hook (`.githooks/pre-push`, enabled by `npm run hooks:install`) runs the same checks locally, so failures show up before CI.
+- The `pre-push` hook (`.githooks/pre-push`, enabled by `npm run hooks:install`) runs the same checks locally, so failures show up before CI. If they fail, it **blocks** a push to `develop` (direct pushes skip the PR check) and only **warns** for any other branch, so work-in-progress can still be pushed.
+- **Agents: treat the hook's warning as a failure.** If a push prints "server checks FAILED", fix it before calling the task done, and say so in your reply. The leniency is for humans pushing work in progress, not for agents.
 - When several AI tools work on the same repo, this file is the shared contract. Put decisions that affect every agent here, not in tool-specific files.
 
 ## 11. Known gaps and roadmap (don't "fix" these silently; ask first)

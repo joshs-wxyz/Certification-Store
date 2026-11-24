@@ -15,6 +15,7 @@ Agents: start here at the beginning of a session on this topic. Continue from th
 | A5 | CI: one GitHub Actions job on `ubuntu-latest` for `pull_request` and `push` on `develop`: `npm ci`, typecheck, tests. No secrets in the workflow. No `paths:` filter. | 2026-11-24 |
 | A6 | No "convert PR to draft on failure" step. | 2026-11-24 |
 | A7 | The repo stays **private on GitHub Free**. GitHub can't require status checks there, so CI is advisory. Protection comes from: the CI ✓/✗ on every PR, a local pre-push hook, an AGENTS.md rule, and a Claude Code deny rule for `gh pr merge`. Don't push toward a paid plan unless the owner asks. | 2026-11-24 |
+| A8 | The pre-push hook is **lenient on feature branches**: failing checks print a warning and the push goes through. A push to `develop` is still **blocked**, because direct pushes skip the PR check. Agents must treat the warning as a failure (AGENTS.md §10). | 2026-11-24 |
 
 ## Checklist
 
@@ -24,6 +25,7 @@ Agents: start here at the beginning of a session on this topic. Continue from th
 - [x] Write the tests: health (prod and dev, no secret values), study-plan success, fallback, all-fail 502, validation 400, malformed JSON 400, oversized 413, non-JSON body 400, `x-powered-by` absent, `describeError` mapping and truncation.
 - [x] Add `.github/workflows/pr-check.yml`.
 - [x] Add `.githooks/pre-push` and wire `core.hooksPath` into `npm run install:all`.
+- [x] Make the hook warn instead of block, except for pushes to `develop` (A8).
 - [x] Root `npm test` also runs the server tests.
 - [x] AGENTS.md: commands, layout, testing, merge rule, §12 pointer. README: scripts and contributing.
 - [x] Claude Code deny rule for `gh pr merge`.
@@ -35,3 +37,4 @@ Agents: start here at the beginning of a session on this topic. Continue from th
 
 - **2026-11-24**: Plan agreed (A1–A7). Implemented every task above except the owner's check that the workflow runs on GitHub.
 - **2026-11-24**: Committed on branch `chore/server-tests-and-pr-check` (3 commits) and pushed. The PR into `develop` is opened from the GitHub web UI (no `gh` CLI on the dev machine).
+- **2026-11-24**: Hook changed to warn on feature branches and block only pushes to `develop` (A8). Committed on the same branch.

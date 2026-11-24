@@ -1,10 +1,35 @@
 #!/bin/sh
 # Runs the same server checks as CI (.github/workflows/pr-check.yml) before every push.
+#   - Pushing to develop: a failure BLOCKS the push (direct pushes skip the PR check).
+#   - Pushing any other branch: a failure only WARNS; the PR check will flag it.
 # Enabled by `npm run hooks:install` (part of `npm run install:all`).
+# AI agents: treat the warning as a failure and fix it before calling a task done (AGENTS.md section 10).
+
+# Git passes one line per pushed ref on stdin: <local ref> <local sha> <remote ref> <remote sha>
+protected=0
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [ "$remote_ref" = "refs/heads/develop" ]; then
+    protected=1
+  fi
+done
+
 echo "[pre-push] server typecheck and tests..."
-npm --prefix server run typecheck --silent && npm --prefix server test --silent
-status=$?
-if [ $status -ne 0 ]; then
-  echo "[pre-push] Server checks failed. Push aborted. Fix the failures, then push again." >&2
+if npm --prefix server run typecheck --silent && npm --prefix server test --silent; then
+  exit 0
 fi
-exit $status
+
+if [ "$protected" -eq 1 ]; then
+  echo "[pre-push] Server checks failed. Push to develop blocked. Fix the failures, then push again." >&2
+  exit 1
+fi
+
+cat >&2 <<'MSG'
+
+  ************************************************************
+  *  WARNING: server checks FAILED. Pushing anyway.          *
+  *  The PR check will be red until this is fixed.           *
+  *  Don't merge (or ask anyone to merge) until it's green.  *
+  ************************************************************
+
+MSG
+exit 0
