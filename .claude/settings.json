@@ -20,7 +20,13 @@
       "PowerShell(type *.env*)",
       "PowerShell(Select-String *.env*)",
       "PowerShell(Get-ChildItem Env:*)",
-      "PowerShell(dir Env:*)"
+      "PowerShell(dir Env:*)",
+      "Bash(gh pr merge*)",
+      "PowerShell(gh pr merge*)",
+      "Bash(git push*--no-verify*)",
+      "PowerShell(git push*--no-verify*)",
+      "Bash(git commit*--no-verify*)",
+      "PowerShell(git commit*--no-verify*)"
     ]
   }
 }

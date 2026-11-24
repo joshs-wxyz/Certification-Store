@@ -4,10 +4,11 @@
   "private": true,
   "description": "Internal catalog of certification exams with Gen AI study plan generation.",
   "scripts": {
-    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install && cd .. && npm run hooks:install",
     "dev": "concurrently -k -n server,client -c magenta,cyan \"npm run dev --prefix server\" \"npm start --prefix client\"",
     "build": "npm run build --prefix server && npm run build --prefix client",
-    "test": "npm test --prefix client -- --watch=false && npm run typecheck --prefix server"
+    "test": "npm test --prefix client -- --watch=false && npm run typecheck --prefix server && npm test --prefix server",
+    "hooks:install": "git config core.hooksPath .githooks"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

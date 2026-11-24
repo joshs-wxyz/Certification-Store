@@ -1,0 +1,37 @@
+# Server checks for pull requests into develop (and pushes to it).
+# The repo is private on GitHub Free, so this check can't be made "required": it is advisory.
+# Don't merge a PR while it is red. See AGENTS.md §10 and docs/plans/testing-and-ci-guard.md.
+name: PR check
+
+on:
+  pull_request:
+    branches: [develop]
+  push:
+    branches: [develop]
+
+concurrency:
+  group: pr-check-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  server:
+    name: Server typecheck and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      # Providers are stubbed: no secrets are needed and no AI API is ever called.
+      - run: npm test
