@@ -1,0 +1,10 @@
+#!/bin/sh
+# Runs the same server checks as CI (.github/workflows/pr-check.yml) before every push.
+# Enabled by `npm run hooks:install` (part of `npm run install:all`).
+echo "[pre-push] server typecheck and tests..."
+npm --prefix server run typecheck --silent && npm --prefix server test --silent
+status=$?
+if [ $status -ne 0 ]; then
+  echo "[pre-push] Server checks failed. Push aborted. Fix the failures, then push again." >&2
+fi
+exit $status
