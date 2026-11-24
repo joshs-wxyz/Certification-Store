@@ -1,0 +1,199 @@
+/*
+ * Certification-Store design tokens - purple-centric palette.
+ *
+ * Built from color-theory research (sub-agent): triadic-leaning scheme with a
+ * restrained violet primary (OKLCH hue 300) and a deep-teal accent (hue 195);
+ * status hues tuned to sit harmoniously next to purple. All ramps share one
+ * OKLCH lightness ladder so equal steps have equal perceived lightness.
+ * 60-30-10: purple-tinted neutrals (60) / purple (30) / teal + status (10).
+ * Every text pair is >= 4.5:1 and every UI pair >= 3:1 (WCAG 2.2), computed.
+ *
+ * Usage notes:
+ *  - `--cs-color-border` is decorative only; inputs/UI boundaries use `--cs-color-border-strong`.
+ *  - Status text/icons on surfaces or *-subtle backgrounds: `--cs-color-<status>-text`.
+ *  - Solid status badges/buttons: `--cs-color-<status>` with `--cs-color-on-<status>`.
+ */
+:root {
+  /* ===== RAW PALETTE ===== */
+  /* Primary purple, hue 300 */
+  --cs-purple-50:  #f6f3fc; /* oklch(0.97 0.012 300) */
+  --cs-purple-100: #eee7fd; /* oklch(0.94 0.03 300) */
+  --cs-purple-200: #e0d2fd; /* oklch(0.89 0.06 300) */
+  --cs-purple-300: #ceb6fc; /* oklch(0.82 0.10 300) */
+  --cs-purple-400: #b48df4; /* oklch(0.72 0.15 300) */
+  --cs-purple-500: #9964e5; /* oklch(0.62 0.19 300) */
+  --cs-purple-600: #8044cb; /* oklch(0.53 0.20 300) */
+  --cs-purple-700: #6731a8; /* oklch(0.45 0.18 300) */
+  --cs-purple-800: #4e2281; /* oklch(0.37 0.15 300) */
+  --cs-purple-900: #351859; /* oklch(0.29 0.11 300) */
+  --cs-purple-950: #1b0c30; /* oklch(0.20 0.07 300) */
+
+  /* Accent teal, hue 195 (triadic-leaning) */
+  --cs-teal-50:  #ecf8f7;
+  --cs-teal-100: #d5f2f1;
+  --cs-teal-200: #b5e6e5;
+  --cs-teal-300: #83d5d4;
+  --cs-teal-400: #49b8b8;
+  --cs-teal-500: #009a9b;
+  --cs-teal-600: #007f7f;
+  --cs-teal-700: #006566;
+  --cs-teal-800: #004c4d;
+  --cs-teal-900: #003435;
+  --cs-teal-950: #001b1c;
+
+  /* Neutral, purple-tinted (hue 300, chroma .004-.02) */
+  --cs-neutral-50:  #faf9fc;
+  --cs-neutral-100: #f2f1f5;
+  --cs-neutral-200: #e7e5ec;
+  --cs-neutral-300: #d5d3db;
+  --cs-neutral-400: #afacb7;
+  --cs-neutral-500: #888490;
+  --cs-neutral-600: #65616d;
+  --cs-neutral-700: #494551;
+  --cs-neutral-800: #322e39;
+  --cs-neutral-900: #1e1b24;
+  --cs-neutral-950: #0e0c13;
+
+  /* Success, hue 152 */
+  --cs-green-50:  #f0f7f2; --cs-green-100: #ddf1e1; --cs-green-200: #c3e5cb;
+  --cs-green-300: #98d5a8; --cs-green-400: #5ebc7b; --cs-green-500: #259f56;
+  --cs-green-600: #008240; --cs-green-700: #006731; --cs-green-800: #004e23;
+  --cs-green-900: #003616; --cs-green-950: #011c0a;
+  /* Warning, hue 75 */
+  --cs-amber-50:  #fbf4ea; --cs-amber-100: #fbe8ce; --cs-amber-200: #f6d5a8;
+  --cs-amber-300: #eeba70; --cs-amber-400: #d79628; --cs-amber-500: #b97600;
+  --cs-amber-600: #995c00; --cs-amber-700: #7b4800; --cs-amber-800: #5d3500;
+  --cs-amber-900: #3f2500; --cs-amber-950: #231200;
+  /* Error, hue 25 */
+  --cs-red-50:  #fdf2f1; --cs-red-100: #ffe4e1; --cs-red-200: #ffccc7;
+  --cs-red-300: #ffaba3; --cs-red-400: #f47b74; --cs-red-500: #e24947;
+  --cs-red-600: #c51d28; --cs-red-700: #a20519; --cs-red-800: #7c000f;
+  --cs-red-900: #56060b; --cs-red-950: #2f0405;
+  /* Info, hue 245 */
+  --cs-blue-50:  #eff6fd; --cs-blue-100: #dbeefe; --cs-blue-200: #bae0ff;
+  --cs-blue-300: #92cbfb; --cs-blue-400: #5eaceb; --cs-blue-500: #288dd4;
+  --cs-blue-600: #0071b6; --cs-blue-700: #005993; --cs-blue-800: #004370;
+  --cs-blue-900: #002e50; --cs-blue-950: #00182b;
+
+  /* ===== NON-COLOR TOKENS ===== */
+  --cs-font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --cs-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --cs-text-xs: 0.75rem;  --cs-text-sm: 0.875rem; --cs-text-md: 1rem;
+  --cs-text-lg: 1.125rem; --cs-text-xl: 1.25rem;  --cs-text-2xl: 1.5rem; --cs-text-3xl: 1.875rem;
+  --cs-leading-tight: 1.25; --cs-leading-normal: 1.5;
+
+  --cs-radius-xs: 4px;  --cs-radius-sm: 6px;  --cs-radius-md: 10px;
+  --cs-radius-lg: 14px; --cs-radius-xl: 20px; --cs-radius-full: 9999px;
+
+  --cs-space-0: 0;       --cs-space-1: 0.25rem; --cs-space-2: 0.5rem;
+  --cs-space-3: 0.75rem; --cs-space-4: 1rem;    --cs-space-5: 1.25rem;
+  --cs-space-6: 1.5rem;  --cs-space-8: 2rem;    --cs-space-10: 2.5rem;
+  --cs-space-12: 3rem;   --cs-space-16: 4rem;
+
+  /* Purple-tinted shadows (rgb 43 18 76 = deep violet) */
+  --cs-shadow-color: 43 18 76;
+  --cs-shadow-1: 0 1px 2px rgb(var(--cs-shadow-color) / 0.08), 0 1px 1px rgb(var(--cs-shadow-color) / 0.04);
+  --cs-shadow-2: 0 2px 4px rgb(var(--cs-shadow-color) / 0.08), 0 4px 12px rgb(var(--cs-shadow-color) / 0.08);
+  --cs-shadow-3: 0 4px 8px rgb(var(--cs-shadow-color) / 0.10), 0 12px 24px rgb(var(--cs-shadow-color) / 0.12);
+  --cs-shadow-4: 0 8px 16px rgb(var(--cs-shadow-color) / 0.12), 0 24px 48px rgb(var(--cs-shadow-color) / 0.16);
+
+  /* ===== SEMANTIC TOKENS: LIGHT ===== */
+  color-scheme: light;
+  --cs-color-background: var(--cs-neutral-50);
+  --cs-color-surface: #ffffff;
+  --cs-color-surface-raised: #ffffff;
+  --cs-color-surface-sunken: var(--cs-neutral-100);
+  --cs-color-border: var(--cs-neutral-300);
+  --cs-color-border-strong: var(--cs-neutral-500);
+  --cs-color-text: var(--cs-neutral-950);
+  --cs-color-text-muted: var(--cs-neutral-600);
+  --cs-color-text-on-primary: #ffffff;
+  --cs-color-primary: var(--cs-purple-700);
+  --cs-color-primary-hover: var(--cs-purple-800);
+  --cs-color-primary-active: var(--cs-purple-900);
+  --cs-color-primary-subtle: var(--cs-purple-100);
+  --cs-color-focus-ring: var(--cs-purple-600);
+  --cs-color-accent: var(--cs-teal-700);
+  --cs-color-accent-subtle: var(--cs-teal-100);
+
+  --cs-color-success: var(--cs-green-600);  --cs-color-success-text: var(--cs-green-700);
+  --cs-color-success-subtle: var(--cs-green-100); --cs-color-on-success: #ffffff;
+  --cs-color-warning: var(--cs-amber-600);  --cs-color-warning-text: var(--cs-amber-700);
+  --cs-color-warning-subtle: var(--cs-amber-100); --cs-color-on-warning: #ffffff;
+  --cs-color-error: var(--cs-red-600);      --cs-color-error-text: var(--cs-red-700);
+  --cs-color-error-subtle: var(--cs-red-100); --cs-color-on-error: #ffffff;
+  --cs-color-info: var(--cs-blue-600);      --cs-color-info-text: var(--cs-blue-700);
+  --cs-color-info-subtle: var(--cs-blue-100); --cs-color-on-info: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --cs-shadow-color: 6 2 14;
+    --cs-shadow-1: 0 1px 2px rgb(var(--cs-shadow-color) / 0.50);
+    --cs-shadow-2: 0 2px 6px rgb(var(--cs-shadow-color) / 0.55), 0 4px 12px rgb(var(--cs-shadow-color) / 0.35);
+    --cs-shadow-3: 0 4px 10px rgb(var(--cs-shadow-color) / 0.60), 0 12px 24px rgb(var(--cs-shadow-color) / 0.40);
+    --cs-shadow-4: 0 8px 16px rgb(var(--cs-shadow-color) / 0.65), 0 24px 48px rgb(var(--cs-shadow-color) / 0.45);
+
+    --cs-color-background: var(--cs-neutral-950);
+    --cs-color-surface: var(--cs-neutral-900);
+    --cs-color-surface-raised: var(--cs-neutral-800);
+    --cs-color-surface-sunken: #09080d;
+    --cs-color-border: var(--cs-neutral-700);
+    --cs-color-border-strong: var(--cs-neutral-500);
+    --cs-color-text: var(--cs-neutral-50);
+    --cs-color-text-muted: var(--cs-neutral-400);
+    --cs-color-text-on-primary: var(--cs-purple-950);
+    --cs-color-primary: var(--cs-purple-400);
+    --cs-color-primary-hover: var(--cs-purple-300);
+    --cs-color-primary-active: var(--cs-purple-200);
+    --cs-color-primary-subtle: var(--cs-purple-900);
+    --cs-color-focus-ring: var(--cs-purple-300);
+    --cs-color-accent: var(--cs-teal-300);
+    --cs-color-accent-subtle: var(--cs-teal-900);
+
+    --cs-color-success: var(--cs-green-400);  --cs-color-success-text: var(--cs-green-300);
+    --cs-color-success-subtle: var(--cs-green-900); --cs-color-on-success: var(--cs-green-950);
+    --cs-color-warning: var(--cs-amber-400);  --cs-color-warning-text: var(--cs-amber-300);
+    --cs-color-warning-subtle: var(--cs-amber-900); --cs-color-on-warning: var(--cs-amber-950);
+    --cs-color-error: var(--cs-red-400);      --cs-color-error-text: var(--cs-red-300);
+    --cs-color-error-subtle: var(--cs-red-900); --cs-color-on-error: var(--cs-red-950);
+    --cs-color-info: var(--cs-blue-400);      --cs-color-info-text: var(--cs-blue-300);
+    --cs-color-info-subtle: var(--cs-blue-900); --cs-color-on-info: var(--cs-blue-950);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --cs-shadow-color: 6 2 14;
+  --cs-shadow-1: 0 1px 2px rgb(var(--cs-shadow-color) / 0.50);
+  --cs-shadow-2: 0 2px 6px rgb(var(--cs-shadow-color) / 0.55), 0 4px 12px rgb(var(--cs-shadow-color) / 0.35);
+  --cs-shadow-3: 0 4px 10px rgb(var(--cs-shadow-color) / 0.60), 0 12px 24px rgb(var(--cs-shadow-color) / 0.40);
+  --cs-shadow-4: 0 8px 16px rgb(var(--cs-shadow-color) / 0.65), 0 24px 48px rgb(var(--cs-shadow-color) / 0.45);
+
+  --cs-color-background: var(--cs-neutral-950);
+  --cs-color-surface: var(--cs-neutral-900);
+  --cs-color-surface-raised: var(--cs-neutral-800);
+  --cs-color-surface-sunken: #09080d;
+  --cs-color-border: var(--cs-neutral-700);
+  --cs-color-border-strong: var(--cs-neutral-500);
+  --cs-color-text: var(--cs-neutral-50);
+  --cs-color-text-muted: var(--cs-neutral-400);
+  --cs-color-text-on-primary: var(--cs-purple-950);
+  --cs-color-primary: var(--cs-purple-400);
+  --cs-color-primary-hover: var(--cs-purple-300);
+  --cs-color-primary-active: var(--cs-purple-200);
+  --cs-color-primary-subtle: var(--cs-purple-900);
+  --cs-color-focus-ring: var(--cs-purple-300);
+  --cs-color-accent: var(--cs-teal-300);
+  --cs-color-accent-subtle: var(--cs-teal-900);
+
+  --cs-color-success: var(--cs-green-400);  --cs-color-success-text: var(--cs-green-300);
+  --cs-color-success-subtle: var(--cs-green-900); --cs-color-on-success: var(--cs-green-950);
+  --cs-color-warning: var(--cs-amber-400);  --cs-color-warning-text: var(--cs-amber-300);
+  --cs-color-warning-subtle: var(--cs-amber-900); --cs-color-on-warning: var(--cs-amber-950);
+  --cs-color-error: var(--cs-red-400);      --cs-color-error-text: var(--cs-red-300);
+  --cs-color-error-subtle: var(--cs-red-900); --cs-color-on-error: var(--cs-red-950);
+  --cs-color-info: var(--cs-blue-400);      --cs-color-info-text: var(--cs-blue-300);
+  --cs-color-info-subtle: var(--cs-blue-900); --cs-color-on-info: var(--cs-blue-950);
+}

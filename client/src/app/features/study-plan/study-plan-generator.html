@@ -1,0 +1,60 @@
+<section class="panel generator" aria-labelledby="plan-heading">
+  <div class="generator__intro">
+    <span class="chip chip--accent">✦ Gen AI</span>
+    <h2 id="plan-heading">Generate a study plan</h2>
+    <p class="muted">
+      Tell us a bit about yourself and we'll draft a week-by-week plan for <strong>{{ certification().title }}</strong>.
+    </p>
+  </div>
+
+  <form class="generator__form" [formGroup]="form" (ngSubmit)="generate()">
+    <div class="field">
+      <label for="plan-experience">Your experience</label>
+      <select id="plan-experience" class="input" formControlName="experienceLevel">
+        <option value="beginner">Beginner, new to this area</option>
+        <option value="intermediate">Intermediate, some hands-on experience</option>
+        <option value="advanced">Advanced, work with it regularly</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="plan-weeks">Weeks available</label>
+      <input id="plan-weeks" class="input" type="number" min="1" max="26" formControlName="weeks" />
+      <span class="hint">1–26 weeks</span>
+    </div>
+
+    <div class="field">
+      <label for="plan-hours">Hours per week</label>
+      <input id="plan-hours" class="input" type="number" min="1" max="40" formControlName="hoursPerWeek" />
+      <span class="hint">1–40 hours</span>
+    </div>
+
+    <div class="field generator__notes">
+      <label for="plan-notes">Anything to focus on? <span class="muted">(optional)</span></label>
+      <textarea id="plan-notes" class="input" rows="2" formControlName="focusNotes"
+        placeholder="e.g. I'm weak on networking; I prefer hands-on labs over reading"></textarea>
+    </div>
+
+    <div class="generator__actions">
+      @if (loading()) {
+        <button type="button" class="btn" (click)="cancel()">Cancel</button>
+      }
+      <button type="submit" class="btn btn--primary" [disabled]="loading()">
+        @if (loading()) { <span class="spinner" aria-hidden="true"></span> Generating… } @else { {{ result() ? 'Regenerate plan' : 'Generate study plan' }} }
+      </button>
+    </div>
+  </form>
+
+  <div aria-live="polite">
+    @if (loading()) {
+      <p class="alert alert--info">Drafting your plan. This can take up to a minute.</p>
+    }
+    @if (error(); as message) {
+      <p class="alert alert--error" role="alert">{{ message }}</p>
+    }
+  </div>
+</section>
+
+@if (result(); as res) {
+  <app-study-plan-view [response]="res" />
+}

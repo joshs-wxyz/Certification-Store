@@ -1,0 +1,37 @@
+<section class="hero">
+  <div>
+    <p class="hero__eyebrow">Certification catalog</p>
+    <h1>Available certification exams</h1>
+    <p class="muted hero__lead">
+      Browse the exams the company currently supports. Open one to see who it's for and generate a personalised AI study plan.
+    </p>
+  </div>
+  <div class="hero__actions">
+    <span class="chip chip--neutral">{{ store.count() }} {{ store.count() === 1 ? 'exam' : 'exams' }}</span>
+    @if (!showForm()) {
+      <button type="button" class="btn btn--primary" (click)="showForm.set(true)">+ Add certification</button>
+    }
+  </div>
+</section>
+
+@if (showForm()) {
+  <app-certification-form (saved)="onAdd($event)" (cancelled)="showForm.set(false)" />
+}
+
+<p class="visually-hidden" aria-live="polite">{{ announcement() }}</p>
+
+@if (store.count() > 0) {
+  <ul class="grid" role="list">
+    @for (cert of store.certifications(); track cert.id) {
+      <li>
+        <app-certification-card [certification]="cert" (deleted)="onDelete($event)" />
+      </li>
+    }
+  </ul>
+} @else {
+  <div class="panel empty">
+    <h2>No certifications yet</h2>
+    <p class="muted">Add one above, or restore the sample catalog to get started.</p>
+    <button type="button" class="btn" (click)="store.restoreDefaults()">Restore sample catalog</button>
+  </div>
+}

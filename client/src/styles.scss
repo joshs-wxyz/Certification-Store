@@ -1,0 +1,242 @@
+/* Global base styles. Design tokens live in src/styles/tokens.css (loaded first via angular.json). */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--cs-font-sans);
+  font-size: 100%;
+  line-height: var(--cs-leading-normal);
+  color: var(--cs-color-text);
+  background: var(--cs-color-background);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--cs-color-background);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  line-height: var(--cs-leading-tight);
+  margin: 0 0 var(--cs-space-3);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+h1 { font-size: var(--cs-text-3xl); }
+h2 { font-size: var(--cs-text-xl); }
+h3 { font-size: var(--cs-text-lg); }
+
+p { margin: 0 0 var(--cs-space-3); }
+
+a {
+  color: var(--cs-color-primary);
+  text-underline-offset: 0.2em;
+
+  &:hover { color: var(--cs-color-primary-hover); }
+}
+
+:focus-visible {
+  outline: 2px solid var(--cs-color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--cs-radius-xs);
+}
+
+.container {
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-inline: var(--cs-space-4);
+
+  @media (min-width: 48rem) {
+    padding-inline: var(--cs-space-8);
+  }
+}
+
+.muted { color: var(--cs-color-text-muted); }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- Surfaces ---------- */
+.panel {
+  background: var(--cs-color-surface);
+  border: 1px solid var(--cs-color-border);
+  border-radius: var(--cs-radius-lg);
+  box-shadow: var(--cs-shadow-1);
+  padding: var(--cs-space-6);
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  --_bg: var(--cs-color-surface);
+  --_fg: var(--cs-color-text);
+  --_border: var(--cs-color-border-strong);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cs-space-2);
+  min-height: 2.5rem;
+  padding: var(--cs-space-2) var(--cs-space-4);
+  border: 1px solid var(--_border);
+  border-radius: var(--cs-radius-md);
+  background: var(--_bg);
+  color: var(--_fg);
+  font: inherit;
+  font-size: var(--cs-text-sm);
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+
+  &:hover { background: var(--cs-color-surface-sunken); color: var(--_fg); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  &--primary {
+    --_bg: var(--cs-color-primary);
+    --_fg: var(--cs-color-text-on-primary);
+    --_border: var(--cs-color-primary);
+    box-shadow: var(--cs-shadow-1);
+
+    &:hover:not(:disabled) { background: var(--cs-color-primary-hover); border-color: var(--cs-color-primary-hover); }
+    &:active:not(:disabled) { background: var(--cs-color-primary-active); }
+  }
+
+  &--ghost {
+    --_bg: transparent;
+    --_border: transparent;
+    --_fg: var(--cs-color-primary);
+
+    &:hover { background: var(--cs-color-primary-subtle); color: var(--cs-color-primary); }
+  }
+
+  &--danger {
+    --_bg: var(--cs-color-error);
+    --_fg: var(--cs-color-on-error);
+    --_border: var(--cs-color-error);
+
+    &:hover { background: var(--cs-color-error-text); color: var(--cs-color-on-error); }
+  }
+
+  &--sm {
+    min-height: 2rem;
+    padding: var(--cs-space-1) var(--cs-space-3);
+    font-size: var(--cs-text-xs);
+  }
+}
+
+/* ---------- Forms ---------- */
+.field {
+  display: grid;
+  gap: var(--cs-space-1);
+
+  label {
+    font-size: var(--cs-text-sm);
+    font-weight: 600;
+  }
+
+  .hint,
+  .error {
+    font-size: var(--cs-text-xs);
+  }
+
+  .hint { color: var(--cs-color-text-muted); }
+  .error { color: var(--cs-color-error-text); }
+}
+
+.input {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: var(--cs-space-2) var(--cs-space-3);
+  border: 1px solid var(--cs-color-border-strong);
+  border-radius: var(--cs-radius-sm);
+  background: var(--cs-color-surface);
+  color: var(--cs-color-text);
+  font: inherit;
+  font-size: var(--cs-text-sm);
+
+  &:focus-visible {
+    outline: 2px solid var(--cs-color-focus-ring);
+    outline-offset: 0;
+    border-color: var(--cs-color-focus-ring);
+  }
+
+  &.ng-invalid.ng-touched { border-color: var(--cs-color-error); }
+}
+
+textarea.input {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+/* ---------- Chips / badges ---------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cs-space-1);
+  padding: 0.125rem var(--cs-space-2);
+  border-radius: var(--cs-radius-full);
+  font-size: var(--cs-text-xs);
+  font-weight: 600;
+  background: var(--cs-color-primary-subtle);
+  color: var(--cs-color-primary);
+
+  &--accent {
+    background: var(--cs-color-accent-subtle);
+    color: var(--cs-color-accent);
+  }
+
+  &--neutral {
+    background: var(--cs-color-surface-sunken);
+    color: var(--cs-color-text-muted);
+  }
+}
+
+/* ---------- Alerts ---------- */
+.alert {
+  padding: var(--cs-space-3) var(--cs-space-4);
+  border-radius: var(--cs-radius-md);
+  font-size: var(--cs-text-sm);
+  border: 1px solid transparent;
+
+  &--error {
+    background: var(--cs-color-error-subtle);
+    color: var(--cs-color-error-text);
+    border-color: var(--cs-color-error);
+  }
+
+  &--info {
+    background: var(--cs-color-info-subtle);
+    color: var(--cs-color-info-text);
+  }
+
+  &--warning {
+    background: var(--cs-color-warning-subtle);
+    color: var(--cs-color-warning-text);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

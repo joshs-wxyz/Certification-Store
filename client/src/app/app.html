@@ -1,0 +1,25 @@
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="app-header">
+  <div class="container app-header__inner">
+    <a routerLink="/" class="brand" aria-label="Certification Store home">
+      <span class="brand__mark" aria-hidden="true">CS</span>
+      <span class="brand__text">
+        <span class="brand__name">Certification Store</span>
+        <span class="brand__tagline">Grow your skills, one exam at a time</span>
+      </span>
+    </a>
+
+    <button type="button" class="btn btn--ghost btn--sm" (click)="theme.cycle()" [attr.aria-label]="'Theme: ' + themeLabel() + '. Click to change.'">
+      Theme: {{ themeLabel() }}
+    </button>
+  </div>
+</header>
+
+<main id="main" class="container app-main">
+  <router-outlet />
+</main>
+
+<footer class="container app-footer muted">
+  Internal draft · Study plans are AI-generated, so check them against the official exam guide.
+</footer>

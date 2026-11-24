@@ -1,0 +1,38 @@
+<nav aria-label="Breadcrumb" class="breadcrumb">
+  <a routerLink="/">← All certifications</a>
+</nav>
+
+@if (certification(); as cert) {
+  <header class="detail-header">
+    <div class="detail-header__meta">
+      <span class="chip">{{ cert.level }}</span>
+      @if (cert.vendor) { <span class="chip chip--accent">{{ cert.vendor }}</span> }
+    </div>
+    <h1>{{ cert.title }}</h1>
+    <p class="muted detail-header__lead">{{ cert.shortDescription }}</p>
+  </header>
+
+  <div class="detail-layout">
+    <section class="panel" aria-labelledby="about-heading">
+      <h2 id="about-heading">About this certification</h2>
+      <p class="prose">{{ cert.description }}</p>
+    </section>
+
+    <section class="panel" aria-labelledby="audience-heading">
+      <h2 id="audience-heading">Who it's intended for</h2>
+      <ul class="audience" role="list">
+        @for (who of cert.intendedFor; track who) {
+          <li>{{ who }}</li>
+        }
+      </ul>
+    </section>
+  </div>
+
+  <app-study-plan-generator [certification]="cert" />
+} @else {
+  <div class="panel not-found">
+    <h1>Certification not found</h1>
+    <p class="muted">It may have been deleted from the catalog.</p>
+    <a routerLink="/" class="btn btn--primary">Back to catalog</a>
+  </div>
+}

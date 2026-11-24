@@ -1,0 +1,43 @@
+:host { display: block; }
+
+.generator {
+  display: grid;
+  gap: var(--cs-space-5);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--cs-color-primary-subtle) 70%, transparent), transparent 60%),
+    var(--cs-color-surface);
+  border-color: color-mix(in srgb, var(--cs-color-primary) 35%, var(--cs-color-border));
+
+  &__intro {
+    h2 { margin: var(--cs-space-2) 0 var(--cs-space-1); }
+    p { margin: 0; }
+  }
+
+  &__form {
+    display: grid;
+    gap: var(--cs-space-4);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  }
+
+  &__notes { grid-column: 1 / -1; }
+
+  &__actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--cs-space-2);
+  }
+}
+
+.spinner {
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: var(--cs-radius-full);
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
