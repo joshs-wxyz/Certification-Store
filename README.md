@@ -74,8 +74,8 @@ npm run dev                             # API on :3000, app on http://localhost:
 ## Contributing
 
 - Branch from `develop` and open pull requests into `develop`.
-- Every PR into `develop` runs **PR check** (`.github/workflows/pr-check.yml`): server typecheck and tests. The repo is private on GitHub Free, so GitHub can't block a failing PR. **Don't merge while the check is red or still running.**
-- The pre-push hook runs the same checks before you push. On a feature branch a failure only prints a warning, so you can still push work in progress. A push straight to `develop` is blocked until the checks pass. Don't get around it with `--no-verify`.
+- There is no GitHub CI: tests run locally only, so nothing uses GitHub Actions minutes. **Don't merge a PR unless `npm test` passes locally on its branch.**
+- The pre-push hook runs the server typecheck and tests before you push. On a feature branch a failure only prints a warning, so you can still push work in progress. A push straight to `develop` is blocked until the checks pass. Don't get around it with `--no-verify`.
 - If a change is meant to alter API behavior, update the matching test in the same PR and say so in the description.
 
 ## Notes and known gaps (draft scope)
