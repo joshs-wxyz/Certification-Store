@@ -1,7 +1,7 @@
 #!/bin/sh
-# Runs the same server checks as CI (.github/workflows/pr-check.yml) before every push.
-#   - Pushing to develop: a failure BLOCKS the push (direct pushes skip the PR check).
-#   - Pushing any other branch: a failure only WARNS; the PR check will flag it.
+# Runs the server typecheck and tests before every push. There is no GitHub CI: checks run locally only.
+#   - Pushing to develop: a failure BLOCKS the push.
+#   - Pushing any other branch: a failure only WARNS, so work in progress can still be pushed.
 # Enabled by `npm run hooks:install` (part of `npm run install:all`).
 # AI agents: treat the warning as a failure and fix it before calling a task done (AGENTS.md section 10).
 
@@ -27,8 +27,8 @@ cat >&2 <<'MSG'
 
   ************************************************************
   *  WARNING: server checks FAILED. Pushing anyway.          *
-  *  The PR check will be red until this is fixed.           *
-  *  Don't merge (or ask anyone to merge) until it's green.  *
+  *  Don't merge (or ask anyone to merge) this branch until  *
+  *  `npm test` passes locally.                              *
   ************************************************************
 
 MSG

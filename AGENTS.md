@@ -21,7 +21,6 @@ Certification-Store/
 ├── AGENTS.md                  ← this file (source of truth for agents)
 ├── CLAUDE.md                  ← pointer to AGENTS.md (Claude Code)
 ├── .github/copilot-instructions.md  ← pointer to AGENTS.md (GitHub Copilot)
-├── .github/workflows/pr-check.yml   ← CI: server typecheck and tests on PRs into develop (advisory, see §10)
 ├── .githooks/pre-push         ← server checks before every push: blocks pushes to develop, warns otherwise (core.hooksPath)
 ├── docs/plans/                ← multi-session plans (testing-and-ci-guard.md)
 ├── README.md                  ← human-facing overview and setup
@@ -75,7 +74,7 @@ Requirements: **Node ≥ 22.12** (developed on 22.23), npm 10. Windows is the pr
 | Server only | `cd server && npm run dev`, `npm run typecheck`, `npm test`, `npm run build` |
 | Health check | `curl http://localhost:4200/api/health` (through the proxy) |
 
-**Before you call a task done:** `npm test` passes, `cd client && npx ng build` has no errors **or warnings** (budgets included), and `cd server && npm run typecheck && npm test` is clean. The server checks are the same ones CI runs on every PR into `develop`.
+**Before you call a task done:** `npm test` passes, `cd client && npx ng build` has no errors **or warnings** (budgets included), and `cd server && npm run typecheck && npm test` is clean. There is no GitHub CI (see §10), so these local runs are the only check.
 
 ## 4. Architecture and data flow
 
@@ -151,11 +150,11 @@ Angular (browser) ── POST /api/study-plan ──▶ Express BFF ──▶ 1.
 - Server: Vitest (`cd server && npm test`). Specs sit next to the source as `*.spec.ts`. Shared helpers live in `src/test/helpers.ts`. HTTP tests use `startApp()` (the app on a random local port) with plain `fetch`, no `supertest`. Providers are **always stubs** (`stubProvider()`): never import `copilot.provider.ts` or `gemini.provider.ts` in a test, and never load `.env`.
 - Server tests are **behavior checks**: they record what the API does today (status codes, response shapes, fallback order, no secret values in `/api/health`). If a change breaks one, either the change is wrong or the behavior change is intended. In the second case, update the test in the same commit and say so in the PR description. Don't weaken or delete a test just to get green.
 - New server behavior (a route, a provider, an error mapping) comes with a spec.
-- Don't make real Copilot or Gemini calls in automated tests or CI. They cost money, use quota, and need credentials.
+- Don't make real Copilot or Gemini calls in automated tests. They cost money, use quota, and need credentials.
 
 ## 9. Gotchas
 
-- **npm 10.9 crash** in `client/` and `server/` (`Cannot read properties of null (reading 'edgesOut')`): fixed by `.npmrc` → `legacy-peer-deps=true` in each. Don't delete those files. CI's `npm ci` relies on the server one too.
+- **npm 10.9 crash** in `client/` and `server/` (`Cannot read properties of null (reading 'edgesOut')`): fixed by `.npmrc` → `legacy-peer-deps=true` in each. Don't delete those files.
 - **Git hooks** live in `.githooks/` and must keep LF line endings (`.gitattributes`) and the executable bit (`git update-index --chmod=+x`).
 - **Don't use `npm install --prefix <dir>`** from the repo root. npm then adds the root package as a `"certification-store": "file:.."` dependency. Use `cd <dir> && npm install`.
 - **Line endings:** the main developer is on Windows (`core.autocrlf=true`). The "LF will be replaced by CRLF" warnings are expected.
@@ -166,8 +165,9 @@ Angular (browser) ── POST /api/study-plan ──▶ Express BFF ──▶ 1.
 - `develop` is the default branch. Branch from `develop`, open PRs into `develop`, keep commits small and focused, and use imperative commit subjects (for example "Add certification search filter").
 - **Never commit** `.env`, keys or tokens, `node_modules/`, `dist/` or `.angular/`.
 - Agents: don't commit, push or open PRs unless a human asks. Don't add dependencies without saying why.
-- **PR check (advisory).** `.github/workflows/pr-check.yml` runs the server typecheck and tests on every PR into `develop` and every push to it. The repo is private on GitHub Free, so GitHub can't block a red merge; the rule is a team agreement: **don't merge a PR while "PR check" is red or still running.** Agents must never merge PRs (denied for Claude Code in `.claude/settings.json`), never suggest merging a red PR, and never bypass hooks with `--no-verify`.
-- The `pre-push` hook (`.githooks/pre-push`, enabled by `npm run hooks:install`) runs the same checks locally, so failures show up before CI. If they fail, it **blocks** a push to `develop` (direct pushes skip the PR check) and only **warns** for any other branch, so work-in-progress can still be pushed.
+- **No GitHub CI and nothing billable on GitHub.** Tests run locally only. Don't add GitHub Actions workflows (`.github/workflows/`), Codespaces or devcontainer setup, paid apps, or anything else that uses GitHub Actions minutes or could incur GitHub charges, unless the owner asks.
+- **Merge rule (team agreement):** don't merge a PR unless `npm test` passes locally on its branch. Agents must never merge PRs (denied for Claude Code in `.claude/settings.json`), never suggest merging a branch with failing tests, and never bypass hooks with `--no-verify`.
+- The `pre-push` hook (`.githooks/pre-push`, enabled by `npm run hooks:install`) runs the server typecheck and tests before every push. If they fail, it **blocks** a push to `develop` and only **warns** for any other branch, so work-in-progress can still be pushed.
 - **Agents: treat the hook's warning as a failure.** If a push prints "server checks FAILED", fix it before calling the task done, and say so in your reply. The leniency is for humans pushing work in progress, not for agents.
 - When several AI tools work on the same repo, this file is the shared contract. Put decisions that affect every agent here, not in tool-specific files.
 
@@ -178,8 +178,8 @@ Angular (browser) ── POST /api/study-plan ──▶ Express BFF ──▶ 1.
 - Generated study plans aren't saved.
 - Client and server study-plan types are duplicated. A shared package is a candidate.
 - Copilot production hardening: `mode: 'empty'` with an explicit `runtime.baseDirectory` and a service token.
-- CI covers only the server. Client tests in CI are planned (see §12).
+- The pre-push hook runs only the server checks. Adding client tests to it is optional (see §12).
 
 ## 12. Active plans
 
-- **Tests and the PR check:** [`docs/plans/testing-and-ci-guard.md`](./docs/plans/testing-and-ci-guard.md) holds the decisions, checklist and progress log. Read it before changing tests, CI or hooks, and update it when you make progress.
+- **Tests and the local guard:** [`docs/plans/testing-and-ci-guard.md`](./docs/plans/testing-and-ci-guard.md) holds the decisions, checklist and progress log. Read it before changing tests or hooks, and update it when you make progress.
