@@ -1,3 +1,8 @@
+import { mkdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
+import { AuthService } from './auth.service.js';
+import { SqliteStore } from './sqlite.store.js';
 import { createApp } from './app.js';
 import { config } from './config.js';
 import { CopilotStudyPlanProvider } from './providers/copilot.provider.js';
@@ -18,7 +23,11 @@ const studyPlans = new StudyPlanService([
   }),
 ]);
 
-const app = createApp({ studyPlans, config });
+const dataDirectory = fileURLToPath(new URL('../data/', import.meta.url));
+mkdirSync(dataDirectory, { recursive: true });
+const database = new SqliteStore(join(dataDirectory, 'users.sqlite'));
+const auth = new AuthService(database);
+const app = createApp({ studyPlans, auth, certifications: database, config });
 
 const server = app.listen(config.port, () => {
   console.log(`[server] Certification-Store API listening on http://localhost:${config.port}`);
@@ -28,6 +37,7 @@ async function shutdown(signal: string) {
   console.log(`[server] ${signal} received, shutting down`);
   server.close();
   await studyPlans.dispose();
+  database.close();
   process.exit(0);
 }
 process.on('SIGINT', () => void shutdown('SIGINT'));

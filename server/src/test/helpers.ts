@@ -1,5 +1,7 @@
 import { once } from 'node:events';
 import type { AddressInfo } from 'node:net';
+import { AuthService } from '../auth.service.js';
+import { SqliteStore } from '../sqlite.store.js';
 import { createApp, type AppConfig, type AppOptions } from '../app.js';
 import type { StudyPlanProvider } from '../providers/study-plan-provider.js';
 import type { ProviderName, StudyPlan, StudyPlanRequest } from '../schema.js';
@@ -65,8 +67,11 @@ export async function startApp(options: {
   config?: AppConfig;
   env?: NodeJS.ProcessEnv;
 }) {
+  const database = new SqliteStore(':memory:');
   const app = createApp({
     studyPlans: options.studyPlans ?? new StudyPlanService(options.providers),
+    auth: new AuthService(database),
+    certifications: database,
     config: options.config ?? testConfig(),
     env: options.env ?? {},
   });
@@ -75,7 +80,14 @@ export async function startApp(options: {
   const { port } = server.address() as AddressInfo;
   return {
     url: `http://127.0.0.1:${port}`,
-    close: () => new Promise<void>((resolve, reject) => server.close((err) => (err ? reject(err) : resolve()))),
+    close: () =>
+      new Promise<void>((resolve, reject) =>
+        server.close((err) => {
+          database.close();
+          if (err) reject(err);
+          else resolve();
+        }),
+      ),
   };
 }
 

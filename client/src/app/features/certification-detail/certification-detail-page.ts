@@ -14,6 +14,6 @@ export class CertificationDetailPage {
   /** Bound from the `:id` route param via withComponentInputBinding(). */
   readonly id = input.required<string>();
 
-  private readonly store = inject(CertificationStore);
+  protected readonly store = inject(CertificationStore);
   protected readonly certification = computed(() => this.store.find(this.id()));
 }

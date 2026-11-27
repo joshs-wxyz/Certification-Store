@@ -3,16 +3,27 @@
     <p class="hero__eyebrow">Certification catalog</p>
     <h1>Available certification exams</h1>
     <p class="muted hero__lead">
-      Browse the exams the company currently supports. Open one to see who it's for and generate a personalised AI study plan.
+      Browse your saved certifications. Open one to see who it's for and generate a personalised AI study plan.
     </p>
   </div>
   <div class="hero__actions">
     <span class="chip chip--neutral">{{ store.count() }} {{ store.count() === 1 ? 'exam' : 'exams' }}</span>
     @if (!showForm()) {
-      <button type="button" class="btn btn--primary" (click)="showForm.set(true)">+ Add certification</button>
+      <button type="button" class="btn btn--primary" [disabled]="store.loading()" (click)="showForm.set(true)">
+        + Add certification
+      </button>
     }
   </div>
 </section>
+
+@if (store.accountError()) {
+  <div class="alert alert--error catalog-error" role="alert">
+    <span>{{ store.accountError() }}</span>
+    @if (store.signedIn()) {
+      <button type="button" class="btn btn--ghost btn--sm" (click)="reloadAccountCatalog()">Retry</button>
+    }
+  </div>
+}
 
 @if (showForm()) {
   <app-certification-form (saved)="onAdd($event)" (cancelled)="showForm.set(false)" />
@@ -20,18 +31,26 @@
 
 <p class="visually-hidden" aria-live="polite">{{ announcement() }}</p>
 
-@if (store.count() > 0) {
+@if (store.loading()) {
+  <p class="muted catalog-loading" role="status">Loading certifications…</p>
+} @else if (store.count() > 0) {
   <ul class="grid" role="list">
     @for (cert of store.certifications(); track cert.id) {
       <li>
-        <app-certification-card [certification]="cert" (deleted)="onDelete($event)" />
+        <app-certification-card
+          [certification]="cert"
+          [unsaved]="store.isUnsaved(cert.id)"
+          [canSave]="store.signedIn() && !store.loading() && !store.accountError()"
+          [saving]="savingIds().has(cert.id)"
+          (deleted)="onDelete($event)"
+          (saveRequested)="onSave($event)"
+        />
       </li>
     }
   </ul>
 } @else {
   <div class="panel empty">
     <h2>No certifications yet</h2>
-    <p class="muted">Add one above, or restore the sample catalog to get started.</p>
-    <button type="button" class="btn" (click)="store.restoreDefaults()">Restore sample catalog</button>
+    <p class="muted">Add a certification to start your catalog.</p>
   </div>
 }

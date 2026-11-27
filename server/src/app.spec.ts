@@ -192,6 +192,155 @@ describe('POST /api/study-plan', () => {
   });
 });
 
+describe('account authentication', () => {
+  it('creates an account and restores and clears its session', async () => {
+    const url = await start({ providers: [] });
+    const registration = await postJson(`${url}/api/auth/register`, {
+      name: 'Jordan Lee',
+      email: 'Jordan@example.com',
+      password: 'a-secure-password',
+    });
+
+    expect(registration.status).toBe(201);
+    expect(registration.headers.get('set-cookie')).toMatch(/cs_session=.*HttpOnly/);
+    const { user } = await registration.json();
+    expect(user).toMatchObject({ name: 'Jordan Lee', email: 'jordan@example.com' });
+    expect(user.passwordHash).toBeUndefined();
+
+    const cookie = registration.headers.get('set-cookie')!;
+    const restored = await fetch(`${url}/api/auth/me`, { headers: { cookie } });
+    expect(restored.status).toBe(200);
+    expect(await restored.json()).toEqual({ user });
+
+    const signedOut = await fetch(`${url}/api/auth/logout`, { method: 'POST', headers: { cookie } });
+    expect(signedOut.status).toBe(204);
+    const afterLogout = await fetch(`${url}/api/auth/me`, { headers: { cookie } });
+    expect(afterLogout.status).toBe(401);
+  });
+
+  it('rejects duplicate email addresses regardless of case', async () => {
+    const url = await start({ providers: [] });
+    const account = { name: 'Jordan', email: 'jordan@example.com', password: 'a-secure-password' };
+    expect((await postJson(`${url}/api/auth/register`, account)).status).toBe(201);
+
+    const duplicate = await postJson(`${url}/api/auth/register`, { ...account, email: 'JORDAN@example.com' });
+    expect(duplicate.status).toBe(409);
+    expect(await duplicate.json()).toEqual({ error: 'An account with this email already exists.' });
+  });
+
+  it('accepts valid credentials and rejects invalid credentials', async () => {
+    const url = await start({ providers: [] });
+    await postJson(`${url}/api/auth/register`, {
+      name: 'Jordan',
+      email: 'jordan@example.com',
+      password: 'a-secure-password',
+    });
+
+    const invalid = await postJson(`${url}/api/auth/login`, {
+      email: 'jordan@example.com',
+      password: 'wrong-password',
+    });
+    expect(invalid.status).toBe(401);
+
+    const login = await postJson(`${url}/api/auth/login`, {
+      email: 'JORDAN@example.com',
+      password: 'a-secure-password',
+    });
+    expect(login.status).toBe(200);
+    expect((await login.json()).user.email).toBe('jordan@example.com');
+  });
+
+  it('validates account input without writing an account', async () => {
+    const url = await start({ providers: [] });
+    const response = await postJson(`${url}/api/auth/register`, {
+      name: '',
+      email: 'not-an-email',
+      password: 'short',
+    });
+    expect(response.status).toBe(400);
+    expect((await response.json()).error).toBe('Invalid registration details.');
+  });
+});
+
+describe('account certification catalogs', () => {
+  const firstCertification = {
+    id: 'aws-associate-1',
+    title: 'AWS Associate',
+    vendor: 'AWS',
+    level: 'Associate',
+    shortDescription: 'Cloud architecture',
+    description: 'Design cloud solutions.',
+    intendedFor: ['Cloud engineers'],
+    createdAt: '2026-10-10T12:00:00.000Z',
+  };
+
+  it('stores certifications under the authenticated account and isolates other accounts', async () => {
+    const url = await start({ providers: [] });
+    const first = await postJson(`${url}/api/auth/register`, {
+      name: 'Jordan',
+      email: 'jordan@example.com',
+      password: 'a-secure-password',
+    });
+    const firstCookie = first.headers.get('set-cookie')!;
+
+    const saved = await postJson(`${url}/api/certifications`, firstCertification);
+    // Account writes require the session cookie.
+    const savedWithSession = await fetch(`${url}/api/certifications`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie: firstCookie },
+      body: JSON.stringify(firstCertification),
+    });
+    expect(saved.status).toBe(401);
+    await saved.json();
+    expect(savedWithSession.status).toBe(201);
+    expect(await savedWithSession.json()).toEqual({ certification: firstCertification });
+
+    const firstCatalog = await fetch(`${url}/api/certifications`, { headers: { cookie: firstCookie } });
+    expect((await firstCatalog.json()).certifications).toEqual([firstCertification]);
+
+    const second = await postJson(`${url}/api/auth/register`, {
+      name: 'Casey',
+      email: 'casey@example.com',
+      password: 'another-secure-password',
+    });
+    const secondCookie = second.headers.get('set-cookie')!;
+    const secondCatalog = await fetch(`${url}/api/certifications`, { headers: { cookie: secondCookie } });
+    expect((await secondCatalog.json()).certifications).toEqual([]);
+
+    const deleteWithOtherAccount = await fetch(`${url}/api/certifications/${firstCertification.id}`, {
+      method: 'DELETE',
+      headers: { cookie: secondCookie },
+    });
+    expect(deleteWithOtherAccount.status).toBe(204);
+    const firstCatalogAfter = await fetch(`${url}/api/certifications`, { headers: { cookie: firstCookie } });
+    expect((await firstCatalogAfter.json()).certifications).toEqual([firstCertification]);
+
+    const deleteWithOwner = await fetch(`${url}/api/certifications/${firstCertification.id}`, {
+      method: 'DELETE',
+      headers: { cookie: firstCookie },
+    });
+    expect(deleteWithOwner.status).toBe(204);
+    const emptyCatalog = await fetch(`${url}/api/certifications`, { headers: { cookie: firstCookie } });
+    expect((await emptyCatalog.json()).certifications).toEqual([]);
+  });
+
+  it('rejects invalid certification data', async () => {
+    const url = await start({ providers: [] });
+    const registration = await postJson(`${url}/api/auth/register`, {
+      name: 'Jordan',
+      email: 'jordan@example.com',
+      password: 'a-secure-password',
+    });
+    const response = await fetch(`${url}/api/certifications`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie: registration.headers.get('set-cookie')! },
+      body: JSON.stringify({ ...firstCertification, level: 'Unspecified' }),
+    });
+    expect(response.status).toBe(400);
+    expect((await response.json()).error).toBe('Invalid certification.');
+  });
+});
+
 describe('security headers', () => {
   it('does not send x-powered-by', async () => {
     const url = await start({ providers: [] });

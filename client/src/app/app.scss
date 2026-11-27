@@ -32,6 +32,19 @@
     gap: var(--cs-space-4);
     min-height: 4rem;
   }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: var(--cs-space-2);
+  }
+
+  &__user {
+    color: var(--cs-color-text-muted);
+    font-size: var(--cs-text-sm);
+  }
 }
 
 .brand {
@@ -77,4 +90,8 @@
   padding-block: var(--cs-space-6);
   font-size: var(--cs-text-xs);
   border-top: 1px solid var(--cs-color-border);
+}
+
+.app-auth-error {
+  margin-top: var(--cs-space-4);
 }

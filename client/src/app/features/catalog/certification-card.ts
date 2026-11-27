@@ -10,6 +10,9 @@ import { Certification } from '../../core/models/certification';
     <article class="card" [class.card--confirming]="confirming()">
       <div class="card__meta">
         <span class="chip">{{ certification().level }}</span>
+        @if (unsaved()) {
+          <span class="chip chip--neutral">Unsaved</span>
+        }
         <span class="card__vendor">{{ certification().vendor }}</span>
       </div>
 
@@ -28,14 +31,27 @@ import { Certification } from '../../core/models/certification';
             <button type="button" class="btn btn--sm" (click)="confirming.set(false)">Cancel</button>
           </div>
         } @else {
-          <button
-            type="button"
-            class="btn btn--ghost btn--sm card__delete"
-            [attr.aria-label]="'Delete ' + certification().title"
-            (click)="confirming.set(true)"
-          >
-            Delete
-          </button>
+          <div class="card__actions">
+            @if (unsaved() && canSave()) {
+              <button
+                type="button"
+                class="btn btn--primary btn--sm card__save"
+                [disabled]="saving()"
+                [attr.aria-label]="'Save ' + certification().title + ' to your account'"
+                (click)="saveRequested.emit(certification().id)"
+              >
+                {{ saving() ? 'Saving…' : 'Save' }}
+              </button>
+            }
+            <button
+              type="button"
+              class="btn btn--ghost btn--sm card__delete"
+              [attr.aria-label]="'Delete ' + certification().title"
+              (click)="confirming.set(true)"
+            >
+              Delete
+            </button>
+          </div>
         }
       </div>
     </article>
@@ -124,9 +140,16 @@ import { Certification } from '../../core/models/certification';
 
     /* Controls sit above the stretched link. */
     .card__delete,
-    .card__confirm {
+    .card__confirm,
+    .card__save {
       position: relative;
       z-index: 1;
+    }
+
+    .card__actions {
+      display: flex;
+      align-items: center;
+      gap: var(--cs-space-2);
     }
 
     .card__delete { --_fg: var(--cs-color-error-text); }
@@ -145,6 +168,10 @@ import { Certification } from '../../core/models/certification';
 })
 export class CertificationCard {
   readonly certification = input.required<Certification>();
+  readonly unsaved = input(false);
+  readonly canSave = input(false);
+  readonly saving = input(false);
   readonly deleted = output<string>();
+  readonly saveRequested = output<string>();
   protected readonly confirming = signal(false);
 }

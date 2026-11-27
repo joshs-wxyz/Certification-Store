@@ -2,7 +2,11 @@
   <a routerLink="/">← All certifications</a>
 </nav>
 
-@if (certification(); as cert) {
+@if (store.loading()) {
+  <div class="panel" role="status">Loading certification…</div>
+} @else if (store.accountError()) {
+  <div class="panel alert alert--error" role="alert">{{ store.accountError() }}</div>
+} @else if (certification(); as cert) {
   <header class="detail-header">
     <div class="detail-header__meta">
       <span class="chip">{{ cert.level }}</span>

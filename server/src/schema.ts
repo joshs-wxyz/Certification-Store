@@ -1,6 +1,18 @@
 import { z } from 'zod';
 
-/** Payload the Angular client sends. The catalog lives client-side, so the certification travels with the request. */
+export const CertificationSchema = z.object({
+  id: z.string().min(1).max(100),
+  title: z.string().trim().min(1).max(200),
+  vendor: z.string().max(100),
+  level: z.enum(['Foundational', 'Associate', 'Professional', 'Specialty', 'Expert']),
+  shortDescription: z.string().trim().min(1).max(160),
+  description: z.string().trim().min(1).max(4000),
+  intendedFor: z.array(z.string().trim().min(1).max(200)).min(1).max(20),
+  createdAt: z.iso.datetime(),
+});
+export type Certification = z.infer<typeof CertificationSchema>;
+
+/** Payload the Angular client sends with each study-plan request. */
 export const StudyPlanRequestSchema = z.object({
   certification: z.object({
     id: z.string().min(1).max(100),

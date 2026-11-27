@@ -8,11 +8,11 @@
 
 An internal web app that shows employees the certification exams currently available to them.
 
-- **Catalog (landing page `/`)**: a panel for each exam, showing title and short description. Panels can be **added and deleted**.
+- **Catalog (landing page `/`)**: starts empty unless the browser or signed-in account has saved exams. Panels can be **added and deleted**.
 - **Details page (`/certifications/:id`)**: title, full description, and who the certification is intended for.
 - **Study plan**: a **Gen AI** study plan generated on the details page. This is a **hard requirement**. Generation uses the **GitHub Copilot SDK first**, with the **Google Gemini SDK (`@google/genai`) as the fallback**.
 
-Status: **rough draft / scaffold**. There is no auth, and the catalog is saved per browser in `localStorage`.
+Status: **rough draft / scaffold**. Email/password accounts and sessions are stored in the server's SQLite database. Guest catalogs use browser `localStorage`; signed-in catalogs are account-specific in SQLite.
 
 ## 2. Repository layout
 
@@ -35,9 +35,9 @@ Certification-Store/
 │           ├── app.ts|html|scss, app.config.ts, app.routes.ts
 │           ├── core/
 │           │   ├── models/    ← certification.ts, study-plan.ts
-│           │   ├── data/      ← seed-certifications.ts (default catalog)
-│           │   └── services/  ← certification.store.ts, study-plan.api.ts, theme.service.ts
+│           │   └── services/  ← auth.api.ts, certification.api.ts, certification.store.ts, study-plan.api.ts, theme.service.ts
 │           └── features/
+│               ├── auth/                   ← auth-modal
 │               ├── catalog/               ← catalog-page, certification-card, certification-form
 │               ├── certification-detail/  ← certification-detail-page
 │               └── study-plan/            ← study-plan-generator, study-plan-view
@@ -46,8 +46,11 @@ Certification-Store/
     ├── .npmrc                 ← legacy-peer-deps=true (see Gotchas)
     ├── tsconfig.build.json    ← build config: excludes *.spec.ts and src/test/ from dist
     └── src/
-        ├── app.ts             ← createApp(): routes (GET /api/health, POST /api/study-plan) and error handler, no side effects
-        ├── index.ts           ← entry point: builds the real providers, calls createApp, listens, handles shutdown
+        ├── app.ts             ← createApp(): API routes and error handler, no side effects
+        ├── index.ts           ← entry point: initializes SQLite/auth and AI providers, calls createApp, listens
+        ├── auth.service.ts    ← account validation, password hashing and session lifecycle
+        ├── certification.service.ts ← account-scoped catalog persistence contract
+        ├── sqlite.store.ts   ← SQLite user, session and account catalog persistence
         ├── *.spec.ts          ← Vitest specs (app.spec.ts, study-plan.service.spec.ts)
         ├── test/helpers.ts    ← stub providers, sample request/plan, startApp() on a random port
         ├── config.ts          ← env loading (process.loadEnvFile)
@@ -82,11 +85,18 @@ Requirements: **Node ≥ 22.12** (developed on 22.23), npm 10. Windows is the pr
 Angular (browser) ── POST /api/study-plan ──▶ Express BFF ──▶ 1. CopilotStudyPlanProvider
        ▲                                           │           2. GeminiStudyPlanProvider (fallback)
        └────────── StudyPlanResponse ◀─────────────┘
+
+Angular (browser) ── POST /api/auth/{register,login} ──▶ Express BFF ──▶ SQLite users/sessions
+       ▲                         HttpOnly session cookie ◀───────────────┘
+
+Guest catalog ──▶ browser localStorage
+Signed-in catalog ──▶ authenticated /api/certifications ──▶ SQLite rows scoped to user id
 ```
 
 - The **browser never sees API keys.** Keys live only in `server/.env`. Never add keys, tokens or AI SDK calls to `client/`.
+- Account passwords are scrypt-hashed with a unique random salt. Opaque sessions are stored as SHA-256 hashes in SQLite and issued in HttpOnly, SameSite=Lax cookies (Secure outside development).
 - **AI assistants must never read secrets files.** No AI agent (Claude Code, Copilot, Cursor, Codex, others) may open, read, search, print, copy or summarize `.env` or `.env.*` files (any directory) or any other file holding credentials, keys or tokens. The only exception is `.env.example`, which holds placeholders only. This covers `cat`/`type`/`Get-Content`, grep/search tools, IDE attachments, and `process.env` dumps. If you need to know whether a variable is set, ask the human, or write code that reports only *whether* it is set, never its value. Never echo secrets into logs, chat, commits or error messages. If you find a real secret in any file you did read, stop and tell the human so they can rotate it. To debug credentials without reading secrets, call `GET /api/health` in dev: it reports only booleans (`tokenConfigured`, `apiKeyConfigured`), provider order and model names, never values. The provider details are returned only when `NODE_ENV` is not `production` (production returns just `{ status: 'ok' }`), so production deployments must set `NODE_ENV=production`. Never extend this endpoint to return secret values, even masked or partial. This is enforced for Claude Code in `.claude/settings.json` (deny rules); other tools must honor it by policy, and the human should also add their own ignore config (for example Copilot content exclusion, `.cursorignore`).
-- The catalog lives on the client, so the client **sends the certification details with each study-plan request**. The server validates every request with `StudyPlanRequestSchema` (Zod) and caps the body at 32 kB. Error codes: invalid request or malformed JSON → **400**, body over 32 kB → **413**, all providers failed → **502**, anything else → **500** with a generic message (details are only logged).
+- Guest catalogs are saved in browser `localStorage`; signed-in catalogs are loaded from and saved to SQLite under the authenticated user id. The client still sends certification details with each study-plan request.
 - `StudyPlanService` tries the providers in order and returns `{ plan, provider, model, fallbackReason?, generatedAt }`. If every provider fails, the server responds **502** with `{ failures: [{ provider, reason }] }`.
 - The study-plan **output contract** is `StudyPlanSchema` in `server/src/schema.ts`. `client/src/app/core/models/study-plan.ts` mirrors it by hand. **When you change one, change the other in the same commit.**
 
@@ -127,7 +137,7 @@ Angular (browser) ── POST /api/study-plan ──▶ Express BFF ──▶ 1.
 - HTTP goes through services in `core/services/` with `provideHttpClient(withFetch())`. Components never call `HttpClient` directly.
 - **File naming follows the Angular v20+ style guide**: `catalog-page.ts`, `certification-card.ts` (no `.component` suffix). Class names omit the `Component` suffix (`CatalogPage`, `CertificationCard`). Selector prefix is `app-`.
 - Small components may use inline templates and styles. Pages use separate `.html` and `.scss` files.
-- Catalog state lives in `CertificationStore` (signals plus `localStorage` key `cs.certifications.v1`). Every `localStorage` access is wrapped in try/catch.
+- Catalog state lives in `CertificationStore` (signals plus guest `localStorage` key `cs.certifications.v1`; signed-in users use the account catalog API). Every `localStorage` access is wrapped in try/catch.
 
 ### Styling and theming
 - **Never hard-code colors.** Use the semantic tokens from `src/styles/tokens.css`: `--cs-color-*` for color, `--cs-space-*`, `--cs-radius-*`, `--cs-shadow-*`, `--cs-text-*` for everything else. Use raw palette steps (`--cs-purple-600`) only for decoration such as gradients.
@@ -173,8 +183,8 @@ Angular (browser) ── POST /api/study-plan ──▶ Express BFF ──▶ 1.
 
 ## 11. Known gaps and roadmap (don't "fix" these silently; ask first)
 
-- No authentication or roles: anyone can add or delete. Planned: company SSO and an admin role.
-- Catalog persistence is per browser. Planned: `/api/certifications` backed by a real store (swap `load`/`persist` in `CertificationStore`).
+- No roles or company SSO yet: anyone who can access the app can still add or delete catalog entries.
+- Guest catalog persistence is per browser. Signed-in account catalogs are stored in SQLite and scoped to the authenticated user; guest and account catalogs are not automatically merged.
 - Generated study plans aren't saved.
 - Client and server study-plan types are duplicated. A shared package is a candidate.
 - Copilot production hardening: `mode: 'empty'` with an explicit `runtime.baseDirectory` and a service token.

@@ -10,11 +10,28 @@
       </span>
     </a>
 
-    <button type="button" class="btn btn--ghost btn--sm" (click)="theme.cycle()" [attr.aria-label]="'Theme: ' + themeLabel() + '. Click to change.'">
-      Theme: {{ themeLabel() }}
-    </button>
+    <nav class="app-header__actions" aria-label="Account and display">
+      @if (auth.currentUser(); as user) {
+        <span class="app-header__user">Hi, {{ user.name }}</span>
+        <button type="button" class="btn btn--ghost btn--sm" (click)="signOut()">Sign out</button>
+      } @else {
+        <button type="button" class="btn btn--ghost btn--sm" (click)="openAuth('login')">Sign in</button>
+        <button type="button" class="btn btn--primary btn--sm" (click)="openAuth('register')">Create account</button>
+      }
+      <button type="button" class="btn btn--ghost btn--sm" (click)="theme.cycle()" [attr.aria-label]="'Theme: ' + themeLabel() + '. Click to change.'">
+        Theme: {{ themeLabel() }}
+      </button>
+    </nav>
   </div>
 </header>
+
+@if (authError()) {
+  <p class="container alert alert--error app-auth-error" role="alert">{{ authError() }}</p>
+}
+
+@if (authModalMode(); as mode) {
+  <app-auth-modal [initialMode]="mode" (dismissed)="authModalMode.set(null)" />
+}
 
 <main id="main" class="container app-main">
   <router-outlet />

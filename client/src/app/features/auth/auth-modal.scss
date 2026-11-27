@@ -1,0 +1,53 @@
+.auth-dialog {
+  width: min(100% - 2rem, 28rem);
+  max-height: min(90dvh, 42rem);
+  padding: var(--cs-space-6);
+  border: 1px solid var(--cs-color-border);
+  border-radius: var(--cs-radius-lg);
+  background: var(--cs-color-surface);
+  color: var(--cs-color-text);
+  box-shadow: var(--cs-shadow-4);
+
+  &::backdrop {
+    background: rgb(14 12 19 / 0.62);
+    backdrop-filter: blur(3px);
+  }
+
+  form {
+    display: grid;
+    gap: var(--cs-space-4);
+    margin-top: var(--cs-space-6);
+  }
+
+  .field { gap: var(--cs-space-2); }
+  .alert { margin: 0; }
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--cs-space-4);
+  }
+
+  &__eyebrow {
+    margin-bottom: var(--cs-space-1);
+    font-size: var(--cs-text-xs);
+    font-weight: 650;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  &__close { flex: 0 0 auto; }
+  &__submit { width: 100%; }
+
+  &__switch {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: var(--cs-space-1);
+    margin: 0;
+    color: var(--cs-color-text-muted);
+    font-size: var(--cs-text-sm);
+  }
+}

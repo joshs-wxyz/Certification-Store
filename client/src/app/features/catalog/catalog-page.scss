@@ -32,6 +32,19 @@ app-certification-form {
   margin-bottom: var(--cs-space-8);
 }
 
+.catalog-error {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--cs-space-3);
+  margin-bottom: var(--cs-space-5);
+}
+
+.catalog-loading {
+  text-align: center;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
